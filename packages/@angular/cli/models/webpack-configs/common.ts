@@ -16,9 +16,9 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
  * require('source-map-loader')
  * require('raw-loader')
  * require('script-loader')
- * require('json-loader')
  * require('url-loader')
  * require('file-loader')
+ * require('@angular-devkit/build-optimizer')
  */
 
 export function getCommonConfig(wco: WebpackConfigOptions) {
@@ -71,6 +71,20 @@ export function getCommonConfig(wco: WebpackConfigOptions) {
     }));
   }
 
+  if (buildOptions.buildOptimizer) {
+    extraRules.push({
+      test: /\.js$/,
+      use: [{
+        loader: '@angular-devkit/build-optimizer/webpack-loader',
+        options: { sourceMap: buildOptions.sourcemaps }
+      }]
+    });
+  }
+
+  if (buildOptions.namedChunks) {
+    extraPlugins.push(new NamedLazyChunksWebpackPlugin());
+  }
+
   return {
     resolve: {
       extensions: ['.ts', '.js'],
@@ -91,23 +105,21 @@ export function getCommonConfig(wco: WebpackConfigOptions) {
     module: {
       rules: [
         { enforce: 'pre', test: /\.js$/, loader: 'source-map-loader', exclude: [nodeModules] },
-        { test: /\.json$/, loader: 'json-loader' },
         { test: /\.html$/, loader: 'raw-loader' },
-        { test: /\.(eot|svg)$/, loader: `file-loader?name=[name]${hashFormat.file}.[ext]` },
+        { test: /\.(eot|svg|cur)$/, loader: `file-loader?name=[name]${hashFormat.file}.[ext]` },
         {
-          test: /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|cur|ani)$/,
+          test: /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
           loader: `url-loader?name=[name]${hashFormat.file}.[ext]&limit=10000`
         }
       ].concat(extraRules)
     },
     plugins: [
-      new webpack.NoEmitOnErrorsPlugin(),
-      new NamedLazyChunksWebpackPlugin(),
+      new webpack.NoEmitOnErrorsPlugin()
     ].concat(extraPlugins),
     node: {
       fs: 'empty',
       // `global` should be kept true, removing it resulted in a
-      // massive size increase with NGO on AIO.
+      // massive size increase with Build Optimizer on AIO.
       global: true,
       crypto: 'empty',
       tls: 'empty',

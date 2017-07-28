@@ -1,7 +1,7 @@
 import {join} from 'path';
 import {git, ng, silentNpm} from '../utils/process';
-import {expectFileToExist} from '../utils/fs';
-import {updateTsConfig, updateJsonFile, useNg2} from '../utils/project';
+import {expectFileToExist, replaceInFile} from '../utils/fs';
+import {updateTsConfig, updateJsonFile, useNg2, useCIChrome} from '../utils/project';
 import {gitClean, gitCommit} from '../utils/git';
 import {getGlobalVariable} from '../utils/env';
 
@@ -36,6 +36,7 @@ export default function() {
         json['dependencies'][pkgName] = packages[pkgName].tar;
       });
     }))
+    .then(() => useCIChrome())
     .then(() => argv['ng2'] ? useNg2() : Promise.resolve())
     .then(() => {
       if (argv['nightly'] || argv['ng-sha']) {
@@ -78,6 +79,7 @@ export default function() {
         progress: false
       };
     }))
+    // npm link on Circle CI is very noisy.
     .then(() => silentNpm('install'))
     // Force sourcemaps to be from the root of the filesystem.
     .then(() => updateTsConfig(json => {

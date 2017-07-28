@@ -29,3 +29,5 @@
  - [Deploy to GitHub Pages](stories/github-pages)
  - [Linked Library](stories/linked-library)
  - [Multiple apps](stories/multiple-apps)
+ - [Continuous Integration](stories/continuous-integration)
+ - [Universal Rendering](stories/universal-rendering)
